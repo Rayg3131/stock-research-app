@@ -1,7 +1,13 @@
 'use client';
 
-import type { AnnualReport, QuarterlyReport } from '@/lib/types';
-import { calculateYoYGrowth } from '@/lib/calculations';
+import { useState } from 'react';
+import type { AnnualReport, QuarterlyReport, StatementType } from '@/lib/types';
+import { 
+  calculateYoYGrowth, 
+  calculateAsPercentOfRevenue,
+  calculateAsPercentOfAssets,
+  calculateAsPercentOfOperatingCashFlow
+} from '@/lib/calculations';
 import { parseValue } from '@/lib/transformers';
 import { formatCurrency, formatPercentage } from '@/lib/calculations';
 
@@ -9,6 +15,7 @@ interface StatementTableProps {
   reports: AnnualReport[] | QuarterlyReport[];
   fields: string[];
   showYoY?: boolean;
+  statementType: StatementType;
 }
 
 function formatFieldLabel(field: string): string {
@@ -19,7 +26,9 @@ function formatFieldLabel(field: string): string {
     .trim();
 }
 
-export default function StatementTable({ reports, fields, showYoY = false }: StatementTableProps) {
+export default function StatementTable({ reports, fields, showYoY = false, statementType }: StatementTableProps) {
+  const [percentageFields, setPercentageFields] = useState<Set<string>>(new Set());
+
   const sortedReports = [...reports].sort(
     (a, b) => new Date(b.fiscalDateEnding).getTime() - new Date(a.fiscalDateEnding).getTime()
   );
@@ -27,6 +36,32 @@ export default function StatementTable({ reports, fields, showYoY = false }: Sta
   if (sortedReports.length === 0) {
     return <div className="text-center text-gray-500">No data available</div>;
   }
+
+  const toggleFieldPercentage = (field: string) => {
+    setPercentageFields(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(field)) {
+        newSet.delete(field);
+      } else {
+        newSet.add(field);
+      }
+      return newSet;
+    });
+  };
+
+  const calculatePercentage = (value: number | null, report: AnnualReport | QuarterlyReport): number | null => {
+    if (statementType === 'income') {
+      const revenue = parseValue(report.totalRevenue);
+      return calculateAsPercentOfRevenue(value, revenue);
+    } else if (statementType === 'balance') {
+      const totalAssets = parseValue(report.totalAssets);
+      return calculateAsPercentOfAssets(value, totalAssets);
+    } else if (statementType === 'cashflow') {
+      const operatingCashFlow = parseValue(report.operatingCashflow);
+      return calculateAsPercentOfOperatingCashFlow(value, operatingCashFlow);
+    }
+    return null;
+  };
 
   return (
     <div className="overflow-x-auto">
@@ -49,19 +84,43 @@ export default function StatementTable({ reports, fields, showYoY = false }: Sta
         </thead>
         <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
           {fields.map((field) => {
+            const isPercentageMode = percentageFields.has(field);
             const values = sortedReports.map((report) => parseValue(report[field]));
+            
             return (
               <tr key={field} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                 <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                  {formatFieldLabel(field)}
+                  <div className="flex items-center justify-between gap-2">
+                    <span>{formatFieldLabel(field)}</span>
+                    <button
+                      onClick={() => toggleFieldPercentage(field)}
+                      className={`text-xs px-2 py-1 rounded transition-colors ${
+                        isPercentageMode
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                      }`}
+                      title={isPercentageMode ? 'Switch to dollar amount' : 'Switch to percentage'}
+                    >
+                      {isPercentageMode ? '%' : '$'}
+                    </button>
+                  </div>
                 </td>
                 {values.map((value, idx) => {
                   const previousValue = idx < values.length - 1 ? values[idx + 1] : null;
                   const yoyGrowth = showYoY && previousValue !== null ? calculateYoYGrowth(value, previousValue) : null;
+                  
+                  const displayValue = isPercentageMode 
+                    ? calculatePercentage(value, sortedReports[idx])
+                    : value;
 
                   return (
                     <td key={idx} className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-900 dark:text-white">
-                      <div>{formatCurrency(value)}</div>
+                      <div>
+                        {isPercentageMode 
+                          ? formatPercentage(displayValue) 
+                          : formatCurrency(value)
+                        }
+                      </div>
                       {showYoY && yoyGrowth !== null && (
                         <div
                           className={`text-xs ${

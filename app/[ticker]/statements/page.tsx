@@ -124,7 +124,12 @@ export default function StatementsPage({ params }: { params: Promise<{ ticker: s
 
       {/* Statement Table */}
       <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        <StatementTable reports={reports} fields={currentFields} showYoY={showYoY} />
+        <StatementTable 
+          reports={reports} 
+          fields={currentFields} 
+          showYoY={showYoY} 
+          statementType={statementType}
+        />
       </div>
     </div>
   );

@@ -291,3 +291,42 @@ export function formatCurrency(value: number | null, decimals: number = 0): stri
   return `$${value.toFixed(decimals)}`;
 }
 
+/**
+ * Calculate percentage of revenue for income statement items
+ */
+export function calculateAsPercentOfRevenue(
+  value: number | null,
+  revenue: number | null
+): number | null {
+  if (value === null || revenue === null || revenue === 0) {
+    return null;
+  }
+  return (value / revenue) * 100;
+}
+
+/**
+ * Calculate percentage of total assets for balance sheet items
+ */
+export function calculateAsPercentOfAssets(
+  value: number | null,
+  totalAssets: number | null
+): number | null {
+  if (value === null || totalAssets === null || totalAssets === 0) {
+    return null;
+  }
+  return (value / totalAssets) * 100;
+}
+
+/**
+ * Calculate percentage of operating cash flow for cash flow items
+ */
+export function calculateAsPercentOfOperatingCashFlow(
+  value: number | null,
+  operatingCashflow: number | null
+): number | null {
+  if (value === null || operatingCashflow === null || operatingCashflow === 0) {
+    return null;
+  }
+  return (value / operatingCashflow) * 100;
+}
+
