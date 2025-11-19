@@ -10,6 +10,12 @@ A comprehensive stock research application built with Next.js that provides fina
   - Set up production deployment configuration (autoscale)
   - Installed all npm dependencies
   - Configured Alpha Vantage API key via Replit Secrets
+- **Financial Statements Percentage Toggle Feature**: Added per-line-item toggle between dollar amounts and percentages
+  - Each line item now has a toggle button ($/%%) to switch views
+  - Income statement: Shows values as % of revenue (e.g., Cost of Revenue → Cost %, Gross Profit → Gross Margin %)
+  - Balance sheet: Shows values as % of total assets
+  - Cash flow: Shows values as % of operating cash flow
+  - YoY percentage changes remain visible in both dollar and percentage modes
 
 ## Project Architecture
 
