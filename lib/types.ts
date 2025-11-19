@@ -76,8 +76,9 @@ export interface TimeSeriesData {
     '2. high': string;
     '3. low': string;
     '4. close': string;
-    '5. adjusted close': string;
-    '6. volume': string;
+    '5. adjusted close'?: string; // Only in adjusted endpoint
+    '5. volume'?: string; // In free daily endpoint
+    '6. volume'?: string; // In adjusted endpoint
   };
 }
 

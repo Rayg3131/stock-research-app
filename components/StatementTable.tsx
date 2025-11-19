@@ -63,6 +63,23 @@ export default function StatementTable({ reports, fields, showYoY = false, state
     return null;
   };
 
+  const getFieldLabel = (field: string, isPercentageMode: boolean): string => {
+    const baseLabel = formatFieldLabel(field);
+    // Change "Gross Profit" to "Gross Margin" when YoY is shown and percentage mode is active
+    if (field === 'grossProfit' && showYoY && isPercentageMode) {
+      return baseLabel.replace('Gross Profit', 'Gross Margin');
+    }
+    // Add "(EBIT)" to Operating Income
+    if (field === 'operatingIncome') {
+      return 'Operating Income (EBIT)';
+    }
+    return baseLabel;
+  };
+
+  const isShadedField = (field: string): boolean => {
+    return field === 'grossProfit' || field === 'operatingIncome' || field === 'netIncome';
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -86,12 +103,20 @@ export default function StatementTable({ reports, fields, showYoY = false, state
           {fields.map((field) => {
             const isPercentageMode = percentageFields.has(field);
             const values = sortedReports.map((report) => parseValue(report[field]));
+            const isShaded = isShadedField(field);
             
             return (
-              <tr key={field} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+              <tr 
+                key={field} 
+                className={`hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                  isShaded ? 'bg-gray-100 dark:bg-gray-800' : ''
+                }`}
+              >
+                <td className={`whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-white ${
+                  isShaded ? 'bg-gray-100 dark:bg-gray-800' : ''
+                }`}>
                   <div className="flex items-center justify-between gap-2">
-                    <span>{formatFieldLabel(field)}</span>
+                    <span>{getFieldLabel(field, isPercentageMode)}</span>
                     <button
                       onClick={() => toggleFieldPercentage(field)}
                       className={`text-xs px-2 py-1 rounded transition-colors ${
@@ -114,7 +139,12 @@ export default function StatementTable({ reports, fields, showYoY = false, state
                     : value;
 
                   return (
-                    <td key={idx} className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-900 dark:text-white">
+                    <td 
+                      key={idx} 
+                      className={`whitespace-nowrap px-4 py-3 text-right text-sm text-gray-900 dark:text-white ${
+                        isShaded ? 'bg-gray-100 dark:bg-gray-800' : ''
+                      }`}
+                    >
                       <div>
                         {isPercentageMode 
                           ? formatPercentage(displayValue) 

@@ -16,13 +16,19 @@ import { DEFAULT_SPY_TICKER } from '@/lib/config';
 
 async function fetchPrices(ticker: string): Promise<PricePoint[]> {
   const res = await fetch(`/api/ticker/${ticker}/prices`);
-  if (!res.ok) throw new Error('Failed to fetch prices');
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to fetch prices');
+  }
   return res.json();
 }
 
 async function fetchOverview(ticker: string): Promise<CompanyOverview> {
   const res = await fetch(`/api/ticker/${ticker}/overview`);
-  if (!res.ok) throw new Error('Failed to fetch overview');
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to fetch overview');
+  }
   return res.json();
 }
 
